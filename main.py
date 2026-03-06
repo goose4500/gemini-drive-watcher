@@ -10,7 +10,6 @@ Share your "GeminiInbox" Drive folder with the service account email.
 Results appear in "GeminiResults" alongside the original file.
 """
 
-import io
 import json
 import os
 import tempfile
@@ -97,27 +96,19 @@ def download_file(service, file_id: str, dest: Path) -> None:
 
 
 def upload_result(service, text: str, filename: str, parent_id: str) -> None:
-    content = io.BytesIO(text.encode("utf-8"))
-    media = MediaFileUpload.__new__(MediaFileUpload)
-
-    # Upload as plain text
-    service.files().create(
-        body={"name": filename, "parents": [parent_id]},
-        media_body=MediaIoBaseDownload.__new__(MediaIoBaseDownload),
-    ).execute()
-
-    # Use a temp file for upload
     with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False, encoding="utf-8") as tmp:
         tmp.write(text)
         tmp_path = tmp.name
 
-    media = MediaFileUpload(tmp_path, mimetype="text/plain")
-    service.files().create(
-        body={"name": filename, "parents": [parent_id]},
-        media_body=media,
-        fields="id",
-    ).execute()
-    Path(tmp_path).unlink(missing_ok=True)
+    try:
+        media = MediaFileUpload(tmp_path, mimetype="text/plain")
+        service.files().create(
+            body={"name": filename, "parents": [parent_id]},
+            media_body=media,
+            fields="id",
+        ).execute()
+    finally:
+        Path(tmp_path).unlink(missing_ok=True)
 
 
 def is_media_file(name: str, mime: str) -> bool:
