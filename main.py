@@ -39,8 +39,13 @@ MEDIA_EXTENSIONS = {
 
 
 def build_drive_service():
-    creds_json = os.environ["GOOGLE_SERVICE_ACCOUNT_JSON"]
-    creds_info = json.loads(creds_json)
+    import base64
+    raw = os.environ["GOOGLE_SERVICE_ACCOUNT_JSON"]
+    # Support both raw JSON and base64-encoded JSON
+    try:
+        creds_info = json.loads(raw)
+    except json.JSONDecodeError:
+        creds_info = json.loads(base64.b64decode(raw).decode())
     creds = service_account.Credentials.from_service_account_info(
         creds_info,
         scopes=["https://www.googleapis.com/auth/drive"],
