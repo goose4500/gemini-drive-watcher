@@ -212,6 +212,7 @@ def poll_loop(service) -> None:
 
 
 def main() -> None:
+    print(f"[debug] All env var names: {sorted(os.environ.keys())}", flush=True)
     required = ["GOOGLE_API_KEY", "GOOGLE_SERVICE_ACCOUNT_JSON"]
     missing = [k for k in required if not os.getenv(k)]
     if missing:
